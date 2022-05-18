@@ -1,0 +1,26 @@
+language: generic
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rahulpargi/react-test -f ./client/Dockerfile.dev ./
+
+script:
+  - docker run -e CI=true rahulpargi/react-test npm test
+
+after_success:
+  - docker build -t rahulpargi/client ./client
+  - docker build -t rahulpargi/nginx ./nginx
+  - docker build -t rahulpargi/server ./server
+  - docker build -t rahulpargi/worker ./
+
+  # Log in to docker CLI
+  - echo "DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Push images to docker hub
+  - docker push rahulpargi/client
+  - docker push rahulpargi/nginx
+  - docker push rahulpargi/server
+  - docker push rahulpargi/worker
